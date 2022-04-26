@@ -1,0 +1,27 @@
+<Project>
+
+  <Target Name="CreateManifestResourceNames" />
+
+  <Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn)">
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)"
+                     Condition="'%(FileName)' != 'System.Console' AND
+                                '%(FileName)' != 'System.Runtime' AND
+                                '%(FileName)' != 'System.Runtime.Extensions'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <FoxyCompilerArgs>@(Compile->'"%(Identity)"', ' ')</FoxyCompilerArgs>
+      <FoxyCompilerArgs>$(FoxyCompilerArgs) /o "@(IntermediateAssembly)"</FoxyCompilerArgs>
+      <FoxyCompilerArgs>$(FoxyCompilerArgs) @(ReferencePath->'/r "%(Identity)"', ' ')</FoxyCompilerArgs>
+
+      <FoxyScriptExt Condition="$([MSBuild]::IsOSUnixLike())">.sh</FoxyScriptExt>
+      <FoxyScriptExt Condition="$([MSBuild]::IsOSPlatform('Windows'))">.cmd</FoxyScriptExt>
+      <FoxyCompilerScript Condition="'$(FoxyCompilerScript)' == ''">fox$(FoxyScriptExt)</FoxyCompilerScript>
+      <FoxyCompileCommand>"$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)..\', '$(FoxyCompilerScript)'))" $(FoxyCompilerArgs)</FoxyCompileCommand>
+    </PropertyGroup>
+
+    <Exec Command="$(FoxyCompileCommand)" />
+  </Target>
+
+</Project>
